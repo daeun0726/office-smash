@@ -79,4 +79,16 @@ export const sfx = {
   swing: () => burst({ dur: 0.18, type: 'bandpass', freq: 700, q: 0.8, gain: 0.25 }),
   thud: () => { burst({ dur: 0.12, type: 'lowpass', freq: 500, gain: 0.8 }); tone({ freq: 90, freqEnd: 50, dur: 0.1, gain: 0.3 }) },
   throw: () => burst({ dur: 0.25, type: 'bandpass', freq: 500, q: 0.7, gain: 0.3 }),
+  boom: () => {
+    burst({ dur: 1.4, type: 'lowpass', freq: 400, gain: 1.4 })
+    burst({ dur: 0.5, type: 'lowpass', freq: 1800, gain: 0.9 })
+    tone({ freq: 70, freqEnd: 25, dur: 1.0, gain: 0.9 })
+  },
+  ignite: () => {
+    burst({ dur: 0.5, type: 'bandpass', freq: 900, q: 0.6, gain: 0.35 })
+    burst({ dur: 0.3, type: 'lowpass', freq: 300, gain: 0.4 })
+  },
+  crackle: () => { for (let i = 0; i < 3; i++) burst({ dur: 0.03, type: 'highpass', freq: 2500, gain: r(0.1, 0.25), delay: r(0, 0.25) }) },
+  puff: () => burst({ dur: 0.8, type: 'highpass', freq: 1500, gain: 0.5 }),
+  click: () => tone({ freq: 1800, dur: 0.03, type: 'square', gain: 0.08 }),
 }

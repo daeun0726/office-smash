@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody, CapsuleCollider, useRapier } from '@react-three/rapier'
 import * as THREE from 'three'
-import { useGame, WEAPONS, fx } from './store'
+import { useGame, WEAPONS, BOMB, fx } from './store'
 import { SPAWN } from './layout'
 import { ITEM_TYPES } from './items'
 import { sfx } from './sound'
@@ -38,8 +38,20 @@ export function Player() {
       swing.current.t = 0
 
       camera.getWorldDirection(dir)
+      if (w.type === 'bomb') {
+        // 폭탄: 바라보는 방향으로 던지고 잠시 뒤 폭발
+        const p = camera.position.clone().addScaledVector(dir, 0.6)
+        useGame.getState().throwBomb([p.x, p.y, p.z], [dir.x * BOMB.speed, dir.y * BOMB.speed + 2, dir.z * BOMB.speed])
+        return sfx.throw()
+      }
       const origin = camera.position.clone()
       const hit = world.castRay(new rapier.Ray(origin, dir), w.range, true, undefined, undefined, undefined, body.current)
+      if (w.type === 'fire') {
+        // 라이터: 맞은 물건에 불붙이기 (안 타는 물건이면 딸깍 소리만)
+        const id = hit?.collider.parent()?.userData?.breakable
+        if (!id || !useGame.getState().ignite(id)) sfx.click()
+        return
+      }
       if (!hit) return sfx.swing()
 
       const toi = hit.timeOfImpact ?? hit.toi
@@ -73,6 +85,8 @@ export function Player() {
       if (e.code === 'Space') e.preventDefault()
       if (e.code === 'Digit1') useGame.getState().setWeapon(0)
       if (e.code === 'Digit2') useGame.getState().setWeapon(1)
+      if (e.code === 'Digit3') useGame.getState().setWeapon(2)
+      if (e.code === 'Digit4') useGame.getState().setWeapon(3)
       if (e.code === 'KeyR') useGame.getState().reset()
     }
     const onKeyUp = (e) => (keys.current[e.code] = false)

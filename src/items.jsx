@@ -294,7 +294,7 @@ export const ITEM_TYPES = {
     render: () => <Box s={[1.2, 0.9, 0.03]} c="#fff" map={orgChartTex()} roughness={0.25} />,
   },
   extinguisher: {
-    name: '소화기', hp: 10, value: 45000, mat: 'metal', colors: ['#d32f2f', '#222222', '#ffffff'], w: 0.3, h: 0.6, pieces: 6, chunk: 0.1,
+    name: '소화기', extinguisher: true, hp: 10, value: 45000, mat: 'metal', colors: ['#d32f2f', '#222222', '#ffffff'], w: 0.3, h: 0.6, pieces: 6, chunk: 0.1,
     render: () => (
       <>
         <Cyl p={[0, 0.25, 0]} rt={0.09} h={0.5} c="#d32f2f" metalness={0.3} roughness={0.4} />
@@ -537,7 +537,7 @@ export const ITEM_TYPES = {
     ),
   },
   car: {
-    name: '승용차', hp: 220, value: 25000000, mat: 'metal', push: 0.25, colors: [], w: 4.2, h: 1.6, pieces: 18, chunk: 0.45,
+    name: '승용차', explosive: 1.2, hp: 220, value: 25000000, mat: 'metal', push: 0.25, colors: [], w: 4.2, h: 1.6, pieces: 18, chunk: 0.45,
     render: ({ color = '#b0b6bd' }) => (
       <>
         <Box p={[0, 0.62, 0]} s={[4.2, 0.75, 1.8]} c={color} metalness={0.4} roughness={0.35} />
@@ -562,7 +562,7 @@ export const ITEM_TYPES = {
     ),
   },
   drum: {
-    name: '드럼통', hp: 40, value: 150000, mat: 'metal', colors: ['#1f5fbf', '#555555'], w: 0.6, h: 0.9, pieces: 8, chunk: 0.22,
+    name: '드럼통', explosive: 1, hp: 40, value: 150000, mat: 'metal', colors: ['#1f5fbf', '#555555'], w: 0.6, h: 0.9, pieces: 8, chunk: 0.22,
     render: ({ color = '#1f5fbf' }) => (
       <>
         <Cyl p={[0, 0.45, 0]} rt={0.3} h={0.9} c={color} metalness={0.4} />
@@ -681,3 +681,8 @@ export function debrisColors(t, args) {
   if (t.colors.length) return t.colors
   return [args?.color || '#888888', '#333333', '#cccccc']
 }
+
+// 불에 타는 정도 (0이면 안 탐). 재질로 정하고, 물건마다 burn 값으로 바꿀 수 있음
+const BURN = { wood: 1, soft: 1, plastic: 0.6, metal: 0, glass: 0 }
+export const burnRate = (t) => t.burn ?? BURN[t.mat] ?? 0
+export const CHARRED = ['#1c1c1c', '#3a2a1f', '#4a4a4a', '#2b2b2b']

@@ -6,6 +6,7 @@ import { Office } from './Office'
 import { Exterior } from './Exterior'
 import { Player } from './Player'
 import { Debris, Projectiles } from './Effects'
+import { Fires, Bombs, Explosions } from './Fire'
 import { Hud } from './Hud'
 import { useGame } from './store'
 import { SPAWN } from './layout'
@@ -25,6 +26,9 @@ export default function App() {
             <Player />
             <Debris />
             <Projectiles />
+            <Bombs />
+            <Fires />
+            <Explosions />
           </Physics>
         </Suspense>
         <PointerLockControls selector="#start-btn" onLock={() => setLocked(true)} onUnlock={() => setLocked(false)} />

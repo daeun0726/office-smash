@@ -1,8 +1,8 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { RigidBody } from '@react-three/rapier'
 import { ITEM_TYPES } from './items'
-import { useGame } from './store'
+import { useGame, bodies } from './store'
 
 const ZERO = { x: 0, y: 0, z: 0 }
 const IMPACT_SPEED = 6.5 // 이 속도(m/s) 이상으로 부딪히면 피해를 입음
@@ -19,6 +19,13 @@ function Body({ id, kind, pos, rot = 0, args }) {
   const born = useRef(performance.now())
   // 충돌 직전 속도를 기록해 두고 충돌 세기를 계산 (충돌 이벤트 시점엔 이미 튕겨나간 속도라서)
   const userData = useMemo(() => ({ breakable: id, kind, v: { x: 0, y: 0, z: 0 } }), [id, kind])
+
+  useEffect(() => {
+    const rb = ref.current
+    if (!rb) return
+    bodies.set(id, { rb, kind, t })
+    return () => bodies.delete(id)
+  }, [id, kind, t])
 
   useFrame(() => {
     const rb = ref.current

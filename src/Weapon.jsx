@@ -29,11 +29,43 @@ const Spanner = () => (
   </>
 )
 
+const BombHand = () => (
+  <>
+    <mesh position={[0, 0.12, 0]} renderOrder={10}>
+      <sphereGeometry args={[0.1, 14, 10]} />
+      <meshStandardMaterial color="#1a1a1a" roughness={0.4} metalness={0.3} depthTest={false} />
+    </mesh>
+    <Part cyl p={[0, 0.24, 0]} s={[0.012, 0.06]} c="#c8b27a" />
+    <Part p={[0, 0.28, 0]} s={[0.025, 0.025, 0.025]} c="#ffd34d" />
+  </>
+)
+
+// 라이터 + 작은 불꽃
+function Lighter() {
+  const flame = useRef()
+  useFrame(({ clock }) => {
+    if (flame.current) flame.current.scale.y = 0.8 + 0.3 * Math.sin(clock.elapsedTime * 25)
+  })
+  return (
+    <>
+      <Part p={[0, 0.1, 0]} s={[0.06, 0.14, 0.025]} c="#d32f2f" />
+      <Part p={[0, 0.19, 0]} s={[0.06, 0.04, 0.026]} c="#b0b6bd" metal={0.9} />
+      <mesh ref={flame} position={[0.01, 0.25, 0]} renderOrder={11}>
+        <coneGeometry args={[0.018, 0.07, 8]} />
+        <meshBasicMaterial color="#ffb13d" depthTest={false} transparent opacity={0.9} />
+      </mesh>
+    </>
+  )
+}
+
+const HAND = [Hammer, Spanner, BombHand, Lighter]
+
 export function Weapon({ swing }) {
   const group = useRef()
   const pivot = useRef()
   const weapon = useGame((s) => s.weapon)
   const { camera } = useThree()
+  const Hand = HAND[weapon]
 
   useFrame((_, dt) => {
     if (!group.current) return
@@ -50,7 +82,7 @@ export function Weapon({ swing }) {
   return (
     <group ref={group}>
       <group position={[0.42, -0.5, -0.7]} scale={0.85}>
-        <group ref={pivot}>{weapon === 0 ? <Hammer /> : <Spanner />}</group>
+        <group ref={pivot}><Hand /></group>
       </group>
     </group>
   )
