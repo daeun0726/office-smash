@@ -1,4 +1,4 @@
-import { signTex, nameplateTex, screenTex, tvTex, whiteboardTex, clockTex, vendTex } from './textures'
+import { signTex, nameplateTex, screenTex, tvTex, whiteboardTex, clockTex, vendTex, orgChartTex } from './textures'
 
 // 기본 도형 (각 메시마다 물리 충돌 상자가 자동으로 만들어짐)
 function Box({ p = [0, 0, 0], s, c = '#fff', r, basic, shadow = true, ...m }) {
@@ -213,8 +213,8 @@ export const ITEM_TYPES = {
     ),
   },
   nameplate: {
-    name: '팀장 명패', hp: 5, value: 50000, mat: 'wood', colors: ['#d8b04a', '#2a1d05'], w: 0.3, h: 0.1, pieces: 5, chunk: 0.06,
-    render: () => <Box p={[0, 0.04, 0]} s={[0.3, 0.08, 0.04]} c="#fff" map={nameplateTex('팀  장')} />,
+    name: '명패', hp: 5, value: 50000, mat: 'wood', colors: ['#d8b04a', '#2a1d05'], w: 0.3, h: 0.1, pieces: 5, chunk: 0.06,
+    render: ({ text = '팀  장' }) => <Box p={[0, 0.04, 0]} s={[0.3, 0.08, 0.04]} c="#fff" map={nameplateTex(text)} />,
   },
   train: {
     name: '모형 열차', hp: 10, value: 3000000, mat: 'metal', colors: ['#1f5fbf', '#ffffff', '#5a3b22'], w: 0.6, h: 0.2, pieces: 8, chunk: 0.08,
@@ -282,6 +282,226 @@ export const ITEM_TYPES = {
   sign: {
     name: '표어 액자', hp: 30, value: 100000, mat: 'wood', fixed: true, colors: ['#1f7a3a', '#ffffff'], w: 2.2, h: 0.55, pieces: 10, chunk: 0.22,
     render: ({ text, bg, w = 2.2 }) => <Box s={[w, w / 4, 0.03]} c="#fff" map={signTex(text, bg)} />,
+  },
+
+  // ───────────── 복도 쪽 방들 ─────────────
+  doorSign: {
+    name: '실명판', hp: 5, value: 30000, mat: 'plastic', fixed: true, colors: ['#455a64', '#ffffff'], w: 0.6, h: 0.2, pieces: 5, chunk: 0.08,
+    render: ({ text, bg = '#455a64', w = 0.7 }) => <Box s={[w, w / 4, 0.03]} c="#fff" map={signTex(text, bg)} />,
+  },
+  orgChart: {
+    name: '조직도 액자', hp: 8, value: 60000, mat: 'glass', fixed: true, colors: ['#ffffff', '#3d3d3d', '#d0d0d0'], w: 1.2, h: 0.9, pieces: 8, chunk: 0.15,
+    render: () => <Box s={[1.2, 0.9, 0.03]} c="#fff" map={orgChartTex()} roughness={0.25} />,
+  },
+  extinguisher: {
+    name: '소화기', hp: 10, value: 45000, mat: 'metal', colors: ['#d32f2f', '#222222', '#ffffff'], w: 0.3, h: 0.6, pieces: 6, chunk: 0.1,
+    render: () => (
+      <>
+        <Cyl p={[0, 0.25, 0]} rt={0.09} h={0.5} c="#d32f2f" metalness={0.3} roughness={0.4} />
+        <Box p={[0, 0.54, 0]} s={[0.08, 0.08, 0.14]} c="#222" />
+      </>
+    ),
+  },
+  directorDesk: {
+    name: '단장님 책상', hp: 220, value: 3500000, mat: 'wood', colors: ['#3b2417', '#2a170e', '#1c1c1c'], w: 2.2, h: 0.77, pieces: 16, chunk: 0.34,
+    render: () => (
+      <>
+        <Box p={[0, 0.745, 0]} s={[2.2, 0.05, 1.0]} c="#3b2417" roughness={0.35} />
+        <Box p={[-0.85, 0.36, 0]} s={[0.5, 0.72, 0.95]} c="#2a170e" />
+        <Box p={[0.85, 0.36, 0]} s={[0.5, 0.72, 0.95]} c="#2a170e" />
+        <Box p={[0, 0.42, -0.47]} s={[1.2, 0.6, 0.03]} c="#2a170e" />
+        <Box p={[0, 0.775, 0.1]} s={[0.6, 0.01, 0.4]} c="#1c1c1c" roughness={0.5} />
+      </>
+    ),
+  },
+  execChair: {
+    name: '단장님 의자', hp: 70, value: 1200000, mat: 'soft', colors: ['#1a1a1a', '#555555'], w: 0.7, h: 1.3, pieces: 10, chunk: 0.22,
+    render: () => (
+      <>
+        <Box p={[0, 0.03, 0]} s={[0.65, 0.06, 0.65]} c="#333" metalness={0.5} />
+        <Box p={[0, 0.27, 0]} s={[0.07, 0.42, 0.07]} c="#666" metalness={0.6} />
+        <Box p={[0, 0.5, 0]} s={[0.62, 0.14, 0.58]} c="#1a1a1a" roughness={0.4} />
+        <Box p={[0, 0.98, 0.27]} s={[0.6, 0.85, 0.12]} c="#1a1a1a" roughness={0.4} />
+        <Box p={[-0.33, 0.68, 0]} s={[0.06, 0.06, 0.45]} c="#222" />
+        <Box p={[0.33, 0.68, 0]} s={[0.06, 0.06, 0.45]} c="#222" />
+      </>
+    ),
+  },
+  sofa: {
+    name: '응접 소파', hp: 100, value: 1800000, mat: 'soft', colors: ['#4e342e', '#3e2723'], w: 2.0, h: 0.85, pieces: 12, chunk: 0.3,
+    render: () => (
+      <>
+        <Box p={[0, 0.22, 0.05]} s={[2.0, 0.44, 0.75]} c="#4e342e" roughness={0.5} />
+        <Box p={[0, 0.6, -0.28]} s={[2.0, 0.5, 0.2]} c="#4e342e" roughness={0.5} />
+        <Box p={[-0.92, 0.55, 0.05]} s={[0.16, 0.3, 0.75]} c="#3e2723" />
+        <Box p={[0.92, 0.55, 0.05]} s={[0.16, 0.3, 0.75]} c="#3e2723" />
+      </>
+    ),
+  },
+  armchair: {
+    name: '1인 소파', hp: 60, value: 700000, mat: 'soft', colors: ['#4e342e', '#3e2723'], w: 0.85, h: 0.85, pieces: 8, chunk: 0.25,
+    render: () => (
+      <>
+        <Box p={[0, 0.22, 0.05]} s={[0.85, 0.44, 0.75]} c="#4e342e" roughness={0.5} />
+        <Box p={[0, 0.6, -0.28]} s={[0.85, 0.5, 0.2]} c="#4e342e" roughness={0.5} />
+        <Box p={[-0.36, 0.55, 0.05]} s={[0.14, 0.3, 0.75]} c="#3e2723" />
+        <Box p={[0.36, 0.55, 0.05]} s={[0.14, 0.3, 0.75]} c="#3e2723" />
+      </>
+    ),
+  },
+  coffeeTable: {
+    name: '응접 테이블', hp: 35, value: 450000, mat: 'glass', clear: true, colors: ['#bcd7e6', '#2a170e'], w: 1.2, h: 0.42, pieces: 10, chunk: 0.18,
+    render: () => (
+      <>
+        <Box p={[0, 0.4, 0]} s={[1.2, 0.03, 0.6]} c="#bcd7e6" transparent opacity={0.6} roughness={0.05} />
+        <Box p={[0, 0.19, 0]} s={[1.0, 0.38, 0.4]} c="#2a170e" />
+      </>
+    ),
+  },
+  bookshelf: {
+    name: '책장', hp: 90, value: 600000, mat: 'wood', colors: ['#5d4037', '#1d4f9c', '#8e1b1b', '#e0c27a'], w: 1.0, h: 2.0, pieces: 14, chunk: 0.22,
+    render: () => (
+      <>
+        <Box p={[0, 1.0, -0.17]} s={[1.0, 2.0, 0.04]} c="#4e342e" />
+        <Box p={[-0.48, 1.0, 0]} s={[0.04, 2.0, 0.38]} c="#5d4037" />
+        <Box p={[0.48, 1.0, 0]} s={[0.04, 2.0, 0.38]} c="#5d4037" />
+        {[0.03, 0.5, 1.0, 1.5, 1.98].map((y) => (
+          <Box key={y} p={[0, y, 0]} s={[0.92, 0.04, 0.38]} c="#5d4037" />
+        ))}
+        {[0.2, 0.7, 1.2, 1.7].map((y, i) => (
+          <group key={y}>
+            <Box p={[-0.22, y + 0.03, 0.02]} s={[0.42, 0.4 - (i % 2) * 0.06, 0.26]} c={['#1d4f9c', '#8e1b1b', '#2e7d32', '#e0c27a'][i]} />
+            <Box p={[0.24, y + 0.0, 0.02]} s={[0.36, 0.34, 0.26]} c={['#e0c27a', '#1d4f9c', '#8e1b1b', '#37474f'][i]} />
+          </group>
+        ))}
+      </>
+    ),
+  },
+  toilet: {
+    name: '변기', hp: 45, value: 350000, mat: 'glass', colors: ['#fafafa', '#e0e0e0'], w: 0.45, h: 0.8, pieces: 12, chunk: 0.15,
+    render: () => (
+      <>
+        <Box p={[0, 0.2, 0.05]} s={[0.36, 0.4, 0.5]} c="#fafafa" roughness={0.2} />
+        <Box p={[0, 0.42, 0.06]} s={[0.4, 0.04, 0.5]} c="#f0f0f0" roughness={0.2} />
+        <Box p={[0, 0.6, -0.24]} s={[0.42, 0.4, 0.18]} c="#fafafa" roughness={0.2} />
+      </>
+    ),
+  },
+  urinal: {
+    name: '소변기', hp: 30, value: 280000, mat: 'glass', fixed: true, colors: ['#fafafa', '#e0e0e0'], w: 0.4, h: 0.7, pieces: 10, chunk: 0.13,
+    render: () => (
+      <>
+        <Box p={[0, 0.85, 0]} s={[0.38, 0.65, 0.3]} c="#fafafa" roughness={0.2} />
+        <Box p={[0, 1.25, -0.08]} s={[0.05, 0.15, 0.05]} c="#bbb" metalness={0.8} />
+      </>
+    ),
+  },
+  sink: {
+    name: '세면대', hp: 40, value: 320000, mat: 'glass', fixed: true, colors: ['#fafafa', '#9e9e9e'], w: 0.6, h: 0.3, pieces: 10, chunk: 0.14,
+    render: () => (
+      <>
+        <Box p={[0, 0.8, 0]} s={[0.55, 0.12, 0.45]} c="#fafafa" roughness={0.2} />
+        <Box p={[0, 0.45, -0.1]} s={[0.12, 0.6, 0.12]} c="#eeeeee" />
+        <Box p={[0, 0.93, -0.17]} s={[0.04, 0.14, 0.04]} c="#bbb" metalness={0.8} roughness={0.2} />
+        <Box p={[0, 0.99, -0.11]} s={[0.04, 0.03, 0.14]} c="#bbb" metalness={0.8} roughness={0.2} />
+      </>
+    ),
+  },
+  mirror: {
+    name: '거울', hp: 8, value: 250000, mat: 'glass', fixed: true, clear: true, colors: ['#dfe9ef', '#b0bec5'], w: 3, h: 1, pieces: 22, chunk: 0.2,
+    render: ({ w = 3 }) => <Box s={[w, 0.9, 0.02]} c="#d6e4ec" metalness={0.15} roughness={0.08} shadow={false} />,
+  },
+  stallPanel: {
+    name: '화장실 칸막이', hp: 25, value: 180000, mat: 'plastic', fixed: true, colors: ['#90a4ae', '#78909c'], w: 1.2, h: 1.9, pieces: 8, chunk: 0.3,
+    render: ({ w = 1.2, short }) => <Box p={[0, short ? 0.6 : 1.1, 0]} s={[w, short ? 0.9 : 1.85, 0.03]} c="#90a4ae" />,
+  },
+  plotter: {
+    name: '대형 플로터', hp: 120, value: 8000000, mat: 'plastic', colors: ['#eceff1', '#263238', '#9e9e9e'], w: 1.6, h: 1.2, pieces: 16, chunk: 0.25,
+    render: () => (
+      <>
+        <Box p={[0, 1.0, 0]} s={[1.6, 0.36, 0.5]} c="#eceff1" />
+        <Box p={[0, 1.0, 0.255]} s={[1.3, 0.22, 0.02]} c="#263238" roughness={0.2} />
+        <Box p={[0.62, 1.2, 0.05]} s={[0.25, 0.06, 0.3]} c="#cfd8dc" />
+        <Box p={[0, 0.78, 0.25]} s={[1.4, 0.03, 0.2]} c="#9e9e9e" />
+        {[-0.7, 0.7].map((x) => (
+          <group key={x}>
+            <Box p={[x, 0.42, 0]} s={[0.05, 0.84, 0.05]} c="#9e9e9e" metalness={0.5} />
+            <Box p={[x, 0.03, 0]} s={[0.06, 0.06, 0.55]} c="#555" />
+          </group>
+        ))}
+      </>
+    ),
+  },
+  laptop: {
+    name: '노트북', hp: 12, value: 1500000, mat: 'glass', colors: ['#b0b6bd', '#111111', '#2f6fd0'], w: 0.35, h: 0.25, pieces: 7, chunk: 0.09,
+    render: () => (
+      <>
+        <Box p={[0, 0.01, 0.02]} s={[0.34, 0.02, 0.24]} c="#b0b6bd" metalness={0.5} />
+        <Box p={[0, 0.12, -0.11]} r={[-0.25, 0, 0]} s={[0.34, 0.22, 0.012]} c="#b0b6bd" metalness={0.5} />
+        <Box p={[0, 0.12, -0.103]} r={[-0.25, 0, 0]} s={[0.31, 0.19, 0.002]} basic map={screenTex()} shadow={false} />
+      </>
+    ),
+  },
+  meshChair: {
+    name: '메쉬 의자', hp: 50, value: 280000, mat: 'plastic', colors: ['#1e1e1e', '#555555'], w: 0.55, h: 1.1, pieces: 9, chunk: 0.2,
+    render: () => (
+      <>
+        <Box p={[0, 0.025, 0]} s={[0.58, 0.05, 0.58]} c="#2a2a2a" />
+        <Box p={[0, 0.25, 0]} s={[0.05, 0.4, 0.05]} c="#888" metalness={0.7} />
+        <Box p={[0, 0.47, 0]} s={[0.5, 0.07, 0.48]} c="#1e1e1e" />
+        <Box p={[0, 0.88, 0.22]} s={[0.46, 0.62, 0.04]} c="#1e1e1e" transparent opacity={0.9} />
+        <Box p={[-0.27, 0.65, 0.02]} s={[0.04, 0.04, 0.32]} c="#555" />
+        <Box p={[0.27, 0.65, 0.02]} s={[0.04, 0.04, 0.32]} c="#555" />
+      </>
+    ),
+  },
+  woodDesk: {
+    name: '파티션 책상', hp: 80, value: 350000, mat: 'wood', colors: ['#d39a5c', '#8d8d8d'], w: 1.4, h: 0.75, pieces: 12, chunk: 0.26,
+    render: () => (
+      <>
+        <Box p={[0, 0.73, 0]} s={[1.4, 0.04, 0.7]} c="#d39a5c" roughness={0.5} />
+        <Box p={[-0.68, 0.355, 0]} s={[0.04, 0.71, 0.66]} c="#c58a4c" />
+        <Box p={[0.68, 0.355, 0]} s={[0.04, 0.71, 0.66]} c="#c58a4c" />
+        <Box p={[0, 0.4, -0.32]} s={[1.32, 0.5, 0.02]} c="#c58a4c" />
+      </>
+    ),
+  },
+  cubicle: {
+    name: '사무 파티션', hp: 30, value: 220000, mat: 'plastic', fixed: true, colors: ['#9ea3a8', '#c7cacd'], w: 2.8, h: 1.25, pieces: 10, chunk: 0.3,
+    render: ({ w = 2.8 }) => (
+      <>
+        <Box p={[0, 0.62, 0]} s={[w, 1.24, 0.04]} c="#9ea3a8" />
+        <Box p={[0, 1.255, 0]} s={[w, 0.03, 0.06]} c="#c7cacd" />
+      </>
+    ),
+  },
+  rollingBoard: {
+    name: '이동식 화이트보드', hp: 40, value: 400000, mat: 'plastic', colors: ['#f8f8f8', '#b0a080', '#aaaaaa'], w: 1.2, h: 1.8, pieces: 10, chunk: 0.28,
+    render: () => (
+      <>
+        <Box p={[0, 1.25, 0]} s={[1.2, 0.9, 0.03]} c="#b0a080" />
+        <Box p={[0, 1.25, 0.017]} s={[1.14, 0.84, 0.005]} c="#fff" map={whiteboardTex()} roughness={0.3} />
+        {[-0.62, 0.62].map((x) => (
+          <group key={x}>
+            <Box p={[x, 0.9, 0]} s={[0.04, 1.8, 0.04]} c="#cfcfcf" metalness={0.6} />
+            <Box p={[x, 0.04, 0]} s={[0.05, 0.05, 0.6]} c="#aaa" metalness={0.6} />
+          </group>
+        ))}
+      </>
+    ),
+  },
+  logStool: {
+    name: '통나무 의자', hp: 40, value: 90000, mat: 'wood', colors: ['#b07a45', '#d9b382', '#7a5230'], w: 0.9, h: 0.36, pieces: 8, chunk: 0.16,
+    render: () => <Cyl p={[0, 0.18, 0]} r={AXIS_X} rt={0.18} h={0.9} c="#b07a45" />,
+  },
+  windowCabinet: {
+    name: '창가 수납장', hp: 80, value: 280000, mat: 'wood', push: 0.5, colors: ['#ddd7cb', '#b9b2a4'], w: 2.4, h: 0.8, pieces: 10, chunk: 0.3,
+    render: () => (
+      <>
+        <Box p={[0, 0.4, 0]} s={[2.4, 0.8, 0.45]} c="#ddd7cb" />
+        {[-0.6, 0.6].map((x) => <Box key={x} p={[x, 0.4, 0.23]} s={[0.012, 0.7, 0.01]} c="#b9b2a4" />)}
+      </>
+    ),
   },
 
   // ───────────── 건물 밖 ─────────────

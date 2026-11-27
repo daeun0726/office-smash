@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
-import { GROUND, PARKING, TRACK_Z, TRACK_X, SHED, ROOM } from './layout'
+import { GROUND, PARKING, TRACK_Z, TRACK_X, SHED, ROOM, BUILDING, DOORS } from './layout'
 
 const SKY = '#b7d3ec'
 
@@ -210,6 +210,8 @@ export function Exterior() {
       <Flat x0={x0} x1={x1} z0={z0} z1={-ROOM.d / 2 - 1} y={-0.01} color="#5f8f4a" />
       <Flat x0={PARKING.x0} x1={PARKING.x1} z0={PARKING.z0} z1={PARKING.z1} y={-0.008} color="#4f5357" />
       <Flat x0={-1.5} x1={1.5} z0={ROOM.d / 2} z1={PARKING.z0} y={-0.006} color="#b9b8ae" />
+      {/* 복도 끝 동쪽 문 앞 보도 */}
+      <Flat x0={BUILDING.x1} x1={BUILDING.x1 + 5} z0={DOORS.east[0] - 0.3} z1={DOORS.east[1] + 0.3} y={-0.006} color="#b9b8ae" />
       {parkLines.map((x) => (
         <Flat key={x} x0={x - 0.05} x1={x + 0.05} z0={PARKING.z0 + 0.6} z1={PARKING.z1 - 0.6} y={-0.004} color="#eeeeee" />
       ))}

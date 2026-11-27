@@ -162,6 +162,93 @@ export const vendTex = () =>
     }
   })
 
+// 경영인사처 조직도 액자 (실제 이름·내선번호 대신 ○○○로 표시)
+export const orgChartTex = () =>
+  canvasTex('org', 1024, 768, (g, w, h) => {
+    g.fillStyle = '#ffffff'
+    g.fillRect(0, 0, w, h)
+    g.textAlign = 'center'
+    g.textBaseline = 'middle'
+    g.fillStyle = '#222'
+    g.font = `bold 40px ${FONT}`
+    g.fillText('경 영 인 사 처   조 직 도', w / 2, 58)
+    g.fillStyle = '#555'
+    g.fillRect(40, 92, w - 80, 3)
+
+    const cols = [
+      { head: '경영인사처장', rows: [['처장', '']] },
+      { head: '관리팀', rows: [['관리총괄', '팀장'], ['자산', '차장'], ['기록물/문서', '차장'], ['소방/보안', '대리'], ['물품', '대리']] },
+      { head: '기획팀', rows: [['기획총괄', '팀장'], ['예산/홍보', '차장'], ['경영혁신', '과장'], ['사무업무보조', '인턴']] },
+      { head: '인사노무팀', rows: [['인사노무총괄', '팀장'], ['감사/청렴', '차장'], ['인사/근태', '과장'], ['급여', '과장'], ['노무/후생', '과장']] },
+    ]
+    const colW = [170, 250, 250, 250]
+    let x = 40
+    cols.forEach((c, ci) => {
+      const cw = colW[ci]
+      g.fillStyle = '#3d3d3d'
+      g.fillRect(x, 118, cw - 16, 34)
+      g.fillStyle = '#fff'
+      g.font = `bold 22px ${FONT}`
+      g.fillText(c.head, x + (cw - 16) / 2, 136)
+      c.rows.forEach(([duty, rank], ri) => {
+        const y = 168 + ri * 112
+        g.strokeStyle = '#999'
+        g.lineWidth = 2
+        g.strokeRect(x, y, cw - 16, 96)
+        g.fillStyle = '#333'
+        if (rank) {
+          const half = (cw - 16) / 2
+          g.beginPath()
+          g.moveTo(x + half, y)
+          g.lineTo(x + half, y + 96)
+          g.stroke()
+          g.font = `18px ${FONT}`
+          g.fillText(duty, x + half / 2, y + 48)
+          g.fillText(rank, x + half * 1.5, y + 32)
+          g.fillText('○ ○ ○', x + half * 1.5, y + 64)
+        } else {
+          g.font = `20px ${FONT}`
+          g.fillText(duty, x + (cw - 16) / 2, y + 32)
+          g.fillText('○ ○ ○', x + (cw - 16) / 2, y + 64)
+        }
+      })
+      x += cw
+    })
+    g.strokeStyle = '#d0d0d0'
+    g.lineWidth = 14
+    g.strokeRect(7, 7, w - 14, h - 14)
+  })
+
+// 안쪽에서 본 창문: 위쪽은 내려온 롤블라인드, 아래쪽은 바깥 나무와 하늘
+export const blindTex = () =>
+  canvasTex('blind', 512, 340, (g, w, h) => {
+    const split = h * 0.55
+    const sky = g.createLinearGradient(0, split, 0, h)
+    sky.addColorStop(0, '#dfeefa')
+    sky.addColorStop(1, '#a9cfa0')
+    g.fillStyle = sky
+    g.fillRect(0, split, w, h - split)
+    g.fillStyle = '#6f9c5e'
+    for (let i = 0; i < 9; i++) {
+      g.beginPath()
+      g.arc(30 + i * 58, h - 20 - (i % 3) * 18, 46, 0, Math.PI * 2)
+      g.fill()
+    }
+    g.fillStyle = '#f3f1ea'
+    g.fillRect(0, 0, w, split)
+    g.fillStyle = 'rgba(0,0,0,0.05)'
+    for (let y = 8; y < split; y += 16) g.fillRect(0, y, w, 2)
+    g.fillStyle = '#d9d5ca'
+    g.fillRect(0, split - 8, w, 8)
+    // 창틀
+    g.fillStyle = '#c9ccd0'
+    g.fillRect(0, 0, w, 6)
+    g.fillRect(0, h - 6, w, 6)
+    g.fillRect(0, 0, 6, h)
+    g.fillRect(w - 6, 0, 6, h)
+    g.fillRect(w / 2 - 3, split, 6, h - split)
+  })
+
 export const floorTex = () =>
   canvasTex('floor', 256, 256, (g, w, h) => {
     g.fillStyle = '#b9bcbf'

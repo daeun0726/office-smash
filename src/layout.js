@@ -8,8 +8,70 @@
   rot: 회전 (0 = 앞면이 출입문 쪽을 향함, Math.PI = 안쪽을 향함)
 */
 
-export const ROOM = { w: 24, d: 16, h: 3.2 }
+export const ROOM = { w: 24, d: 16, h: 3.2 } // 경영인사처 사무실 (x -12~12, z -8~8)
 export const SPAWN = [0, 1.2, 6.3]
+
+/* ── 건물 전체 구조 ──
+   경영인사처 동쪽 벽 문으로 나가면 동쪽으로 뻗은 복도.
+   복도에 나서면 바로 오른쪽(남쪽)이 단장실, 5걸음(약 3.3m) 더 가면 왼쪽(북쪽)에 화장실,
+   화장실 바로 옆이 인턴실. 복도 끝(동쪽)은 바깥으로 나가는 문.
+
+        z -8 ┌──────────────────────┬─────────┬──────────────┐
+             │                      │ 화장실  │   인턴실      │
+             │     경영인사처        │         │              │
+        z 0.5│                      ├──[문]───┴─[문]─────────┤
+             │                    [문]  복  도               [문]→ 밖
+        z 3.1│                      ├[문]────────┬─────[문]──┤
+             │                      │  단장실    │  비품실    │
+        z  8 └─────────[출입문]──────┴────────────┴───────────┘
+           x -12                   x 12        x 20         x 30          */
+export const BUILDING = { x0: -12, x1: 30, z0: -8, z1: 8, h: 3.2 }
+export const DOOR = { x0: -0.9, x1: 0.9, h: 2.3 } // 정문 (남쪽 벽 가운데)
+export const CORRIDOR = { z0: 0.5, z1: 3.1 }
+const CZ = (CORRIDOR.z0 + CORRIDOR.z1) / 2
+const SIDE_DOOR = [CZ - 0.9, CZ + 0.9] // 경영인사처 ↔ 복도, 복도 ↔ 바깥
+export const DOORS = {
+  main: [DOOR.x0, DOOR.x1],
+  dept: SIDE_DOOR,
+  director: [12.55, 13.65],
+  restroom: [15.9, 16.9],
+  intern: [18.4, 19.6],
+  storage: [25.6, 26.7],
+  east: SIDE_DOOR,
+}
+
+// 벽: axis 'x' = z가 at인 위치에서 x방향으로 뻗은 벽, axis 'z' = x가 at인 위치에서 z방향으로 뻗은 벽
+export const WALLS = [
+  { axis: 'x', at: -8, from: -12, to: 30, ext: true },
+  { axis: 'x', at: 8, from: -12, to: 30, ext: true, doors: [DOORS.main] },
+  { axis: 'z', at: -12, from: -8, to: 8, ext: true },
+  { axis: 'z', at: 30, from: -8, to: 8, ext: true, doors: [DOORS.east] },
+  { axis: 'z', at: 12, from: -8, to: 8, doors: [DOORS.dept] },
+  { axis: 'x', at: CORRIDOR.z0, from: 12, to: 30, doors: [DOORS.restroom, DOORS.intern] },
+  { axis: 'x', at: CORRIDOR.z1, from: 12, to: 30, doors: [DOORS.director, DOORS.storage] },
+  { axis: 'z', at: 17.5, from: -8, to: CORRIDOR.z0 },
+  { axis: 'z', at: 20, from: CORRIDOR.z1, to: 8 },
+]
+
+// 방마다 바닥 재질과 천장 조명
+export const ROOMS = [
+  { name: '경영인사처', x0: -12, x1: 12, z0: -8, z1: 8, floor: 'tile', lights: [4.5, 4] },
+  { name: '복도', x0: 12, x1: 30, z0: CORRIDOR.z0, z1: CORRIDOR.z1, floor: 'tile', tint: '#d9d4c8', lights: [4, 9] },
+  { name: '화장실', x0: 12, x1: 17.5, z0: -8, z1: CORRIDOR.z0, floor: 'tile', tint: '#cfe3ec', tile: 0.5, lights: [2.6, 3.2] },
+  { name: '인턴실', x0: 17.5, x1: 30, z0: -8, z1: CORRIDOR.z0, floor: 'tile', tint: '#f1ece2', lights: [3.6, 2.8] },
+  { name: '단장실', x0: 12, x1: 20, z0: CORRIDOR.z1, z1: 8, floor: '#59607a', lights: [3.5, 9] },
+  { name: '비품실', x0: 20, x1: 30, z0: CORRIDOR.z1, z1: 8, floor: 'tile', lights: [4.5, 9] },
+]
+
+// 창문 (모두 바깥벽). n = 바깥쪽 방향, blind = 안쪽에 롤블라인드
+export const WINDOWS = [
+  ...[-3.5, 3].map((x) => ({ p: [x, 1.8, 8], n: [0, 0, 1], w: 2.4, h: 1.3 })),
+  ...[-1, 3].map((z) => ({ p: [-12, 1.8, z], n: [-1, 0, 0], w: 2.4, h: 1.3 })),
+  { p: [14.6, 2.35, -8], n: [0, 0, -1], w: 1.4, h: 0.5 }, // 화장실 환기창
+  ...[19.6, 22.2, 24.8, 27.4].map((x) => ({ p: [x, 1.85, -8], n: [0, 0, -1], w: 2.5, h: 1.7, blind: true })),
+  ...[-6.3, -3.6].map((z) => ({ p: [30, 1.85, z], n: [1, 0, 0], w: 2.5, h: 1.7, blind: true })),
+  ...[15, 18.2].map((x) => ({ p: [x, 1.8, 8], n: [0, 0, 1], w: 2.2, h: 1.4, blind: true })),
+]
 
 const DESK_TOP = 0.752
 const BOSS_TOP = 0.772
@@ -73,7 +135,8 @@ for (const cx of [-6, -1, 4]) for (const cz of [-0.5, 3.8]) pod(cx, cz)
 add('sign', [0, 2.2, -7.83], 0, { text: '안 전 제 일', bg: '#1f7a3a' })
 add('sign', [-5.5, 2.2, -7.83], 0, { text: '무재해 1000일 달성!', bg: '#1d4f9c' })
 add('clock', [3.6, 2.3, -7.83], 0)
-add('whiteboard', [11.83, 1.5, 1.5], -Math.PI / 2)
+add('whiteboard', [11.86, 1.5, -1.6], -Math.PI / 2)
+add('orgChart', [11.88, 1.65, 4.2], -Math.PI / 2)
 
 // ── 서쪽 벽: 서류함, 복합기, 상자 ──
 for (let i = 0; i < 13; i++) add('cabinet', [-11.54, 0, -3 + i * 0.55], Math.PI / 2)
@@ -113,6 +176,115 @@ add('plant', [4.6, 0, 7.4])
 add('plant', [11.4, 0, 7.4])
 add('water', [11.5, 0, 5.8], -Math.PI / 2)
 
+/* ═══════════════════════ 복도 쪽 방들 ═══════════════════════ */
+const HALF = 0.1 // 안쪽 벽 두께의 절반
+const PLATE = 0.12 // 벽에서 실명판까지
+
+// ── 실명판 ──
+add('doorSign', [12 + PLATE, 2.7, CZ], Math.PI / 2, { text: '경영인사처', w: 1.2 })
+add('doorSign', [DOORS.director[1] + 0.5, 2.0, CORRIDOR.z1 - PLATE], Math.PI, { text: '단장실' })
+add('doorSign', [DOORS.restroom[0] - 0.5, 2.0, CORRIDOR.z0 + PLATE], 0, { text: '화장실', bg: '#1d4f9c' })
+add('doorSign', [DOORS.intern[1] + 0.5, 2.0, CORRIDOR.z0 + PLATE], 0, { text: '인턴실' })
+add('doorSign', [DOORS.storage[1] + 0.5, 2.0, CORRIDOR.z1 - PLATE], Math.PI, { text: '비품실' })
+
+// ── 복도 ──
+add('extinguisher', [16.2, 0, CORRIDOR.z1 - 0.25], 0)
+add('extinguisher', [28.5, 0, CORRIDOR.z0 + 0.25], 0)
+add('plant', [22, 0, CORRIDOR.z0 + 0.35])
+add('water', [23.6, 0, CORRIDOR.z1 - 0.3], Math.PI)
+
+// ── 단장실 (x 12~20, z 3.1~8) ──
+{
+  const base = [17.9, 0, 5.4]
+  const rot = Math.PI / 2 // 동쪽 창가에 앉아 문 쪽(서쪽)을 바라봄
+  add('directorDesk', base, rot)
+  add('monitor', local(base, rot, [0.45, 0.772, -0.25]), rot)
+  add('keyboard', local(base, rot, [0.45, 0.772, 0.12]), rot)
+  add('phone', local(base, rot, [-0.85, 0.772, -0.1]), rot)
+  add('train', local(base, rot, [-0.4, 0.772, -0.25]), rot)
+  add('nameplate', local(base, rot, [0, 0.772, -0.42]), rot - Math.PI, { text: '단  장' })
+  add('execChair', local(base, rot, [0, 0, 0.8]), rot)
+}
+for (const z of [4.1, 7.1]) add('bookshelf', [20 - HALF - 0.22, 0, z], -Math.PI / 2)
+add('sofa', [14.7, 0, 7.45], Math.PI)
+add('coffeeTable', [14.7, 0, 6.15], 0)
+add('armchair', [12.75, 0, 6.15], -Math.PI / 2)
+add('armchair', [16.65, 0, 6.15], Math.PI / 2)
+add('mug', [14.4, 0.42, 6.1])
+add('mug', [15.0, 0.42, 6.25])
+add('plant', [12.5, 0, 7.5])
+add('sign', [12 + HALF + 0.02, 2.1, 5.6], Math.PI / 2, { text: '청렴 · 안전 · 혁신', bg: '#5d4037', w: 2 })
+add('clock', [16.5, 2.5, CORRIDOR.z1 + HALF + 0.02], 0)
+
+// ── 화장실 (x 12~17.5, z -8~0.5) ──
+for (const cx of [12.73, 13.98, 15.23]) {
+  add('toilet', [cx, 0, -7.5], 0)
+  add('stallPanel', [cx, 0, -6.4], 0, { w: 1.2 }) // 칸 문
+}
+for (const x of [13.35, 14.6, 15.85]) add('stallPanel', [x, 0, -7.2], Math.PI / 2, { w: 1.55 }) // 칸 사이
+for (const z of [-5.3, -4.4, -3.5]) add('urinal', [17.5 - HALF - 0.18, 0, z], -Math.PI / 2)
+for (const z of [-4.85, -3.95]) add('stallPanel', [17.5 - HALF - 0.25, 0.25, z], 0, { w: 0.5, short: true })
+for (const z of [-4.6, -3.45, -2.3]) add('sink', [12 + HALF + 0.25, 0, z], Math.PI / 2)
+add('mirror', [12 + HALF + 0.02, 1.6, -3.45], Math.PI / 2, { w: 3.2 })
+add('trashBin', [12.5, 0, -1.2])
+
+// ── 인턴실 (x 17.5~30, z -8~0.5) ──
+// 들어가자마자 왼쪽: 대형 플로터와 프린터
+add('plotter', [17.5 + HALF + 0.35, 0, -1.4], Math.PI / 2)
+add('printer', [17.5 + HALF + 0.35, 0, -3.3], Math.PI / 2)
+add('cabinet', [17.5 + HALF + 0.32, 0, -4.4], Math.PI / 2)
+add('cabinet', [17.5 + HALF + 0.32, 0, -4.95], Math.PI / 2)
+add('box', [18.1, 0, -5.9], 0.3)
+// 창가 수납장
+for (const x of [19.6, 22.2, 24.8, 27.4]) add('windowCabinet', [x, 0, -8 + 0.15 + 0.25], 0)
+// 가운데 회의 테이블 + 노트북
+{
+  const [tx, tz] = [21.4, -4.3]
+  add('meetingTable', [tx, 0, tz], Math.PI / 2)
+  const TOP = 0.77
+  for (const [dz, s] of [[-0.9, -1], [0.1, -1], [-0.4, 1], [0.9, 1]]) {
+    add('laptop', [tx + s * 0.3, TOP, tz + dz], (s < 0 ? -Math.PI / 2 : Math.PI / 2) + dz * 0.12)
+  }
+  add('mug', [tx - 0.05, TOP, tz - 0.3])
+  add('mug', [tx + 0.1, TOP, tz + 0.5])
+  add('box', [tx + 0.05, TOP, tz - 1.15], 0.4)
+  for (const dz of [-1, 0, 1]) {
+    add('meshChair', [tx - 1.1, 0, tz + dz * 0.95], -Math.PI / 2 + dz * 0.15)
+    add('meshChair', [tx + 1.1, 0, tz + dz * 0.95], Math.PI / 2 - dz * 0.2)
+  }
+}
+// 오른쪽: 파티션 책상 4자리
+{
+  const cx = 26.2
+  const cz = -4.2
+  for (const dx of [-0.72, 0.72]) {
+    for (const [dz, rot] of [[0.38, 0], [-0.38, Math.PI]]) {
+      const base = [cx + dx, 0, cz + dz]
+      add('woodDesk', base, rot)
+      add('meshChair', local(base, rot, [0, 0, 0.72]), rot + (dx > 0 ? 0.25 : -0.1))
+    }
+  }
+  add('cubicle', [cx, 0, cz], 0, { w: 2.9 })
+  for (const s of [-1, 1]) add('cubicle', [cx + s * 1.47, 0, cz], Math.PI / 2, { w: 1.6 })
+  add('monitor', [cx - 0.72, DESK_TOP, cz + 0.22], 0)
+  add('keyboard', [cx - 0.72, DESK_TOP, cz + 0.5], 0)
+  add('laptop', [cx + 0.72, DESK_TOP, cz + 0.5], 0.2)
+  add('monitor', [cx + 0.72, DESK_TOP, cz - 0.22], Math.PI)
+  add('mug', [cx - 1.1, DESK_TOP, cz - 0.6])
+  add('phone', [cx + 1.1, DESK_TOP, cz + 0.55], 0)
+}
+add('rollingBoard', [23.4, 0, -1.2], -0.35)
+for (const z of [-2.2, -1.2]) add('logStool', [29.4, 0, z], Math.PI / 2)
+add('logStool', [28.8, 0, -1.7], 0.3)
+add('trashBin', [29.5, 0, 0])
+add('plant', [29.5, 0, -7.4])
+
+// ── 비품실 (x 20~30, z 3.1~8) ──
+for (let i = 0; i < 6; i++) add('cabinet', [21.2 + i * 0.55, 0, 8 - HALF - 0.42], Math.PI)
+for (const [x, z, r] of [[26.4, 7.3, 0.1], [27, 7.35, -0.2], [26.7, 6.7, 0.4], [28.8, 6.9, 0], [29.2, 5.8, 0.6]]) add('box', [x, 0, z], r)
+add('box', [26.7, 0.322, 7.3], 0.3)
+for (const z of [4.2, 5]) add('drum', [29.4, 0, z], 0, { color: '#c62828' })
+
 /* ═══════════════════════ 건물 밖 ═══════════════════════
    사무실 건물: x -12~12, z -8~8 (출입문은 남쪽 벽 가운데)
    건물 앞(남쪽)  z 8~18  : 간판, 자판기, 주차장
@@ -120,7 +292,6 @@ add('water', [11.5, 0, 5.8], -Math.PI / 2)
    건물 뒤(북쪽)  z -24~-9: 잔디밭과 나무
 */
 export const GROUND = { x0: -45, x1: 45, z0: -24, z1: 58 }
-export const DOOR = { x0: -0.9, x1: 0.9, h: 2.3 }
 export const PARKING = { x0: -21, x1: 21, z0: 11, z1: 17 }
 export const TRACK_Z = [26, 31, 36, 41]
 export const TRACK_X = [-42, 42]
