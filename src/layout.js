@@ -16,7 +16,12 @@ const BOSS_TOP = 0.772
 
 const items = []
 let n = 0
-const add = (kind, pos, rot = 0, args) => items.push({ id: `${kind}-${n++}`, kind, pos, rot, args })
+// parent: 이 물건이 붙어 있는 물건 (예: 전동차 유리창 → 전동차). 부모가 부서지면 같이 사라짐
+const add = (kind, pos, rot = 0, args, parent) => {
+  const id = `${kind}-${n++}`
+  items.push({ id, kind, pos, rot, args, parent })
+  return id
+}
 
 // 기준점(base)에서 rot만큼 돌린 상대 좌표
 function local(base, rot, [lx, ly, lz]) {
@@ -107,5 +112,84 @@ add('plant', [-5.7, 0, 7.4])
 add('plant', [4.6, 0, 7.4])
 add('plant', [11.4, 0, 7.4])
 add('water', [11.5, 0, 5.8], -Math.PI / 2)
+
+/* ═══════════════════════ 건물 밖 ═══════════════════════
+   사무실 건물: x -12~12, z -8~8 (출입문은 남쪽 벽 가운데)
+   건물 앞(남쪽)  z 8~18  : 간판, 자판기, 주차장
+   차량기지 마당  z 22~45 : 선로 4줄, 전동차, 정비고(동쪽)
+   건물 뒤(북쪽)  z -24~-9: 잔디밭과 나무
+*/
+export const GROUND = { x0: -45, x1: 45, z0: -24, z1: 58 }
+export const DOOR = { x0: -0.9, x1: 0.9, h: 2.3 }
+export const PARKING = { x0: -21, x1: 21, z0: 11, z1: 17 }
+export const TRACK_Z = [26, 31, 36, 41]
+export const TRACK_X = [-42, 42]
+export const RAIL_TOP = 0.15
+export const SHED = { x0: 8, x1: 42, z0: 22.5, z1: 44.5, h: 9 }
+
+// ── 건물 앞 ──
+add('sign', [0, 2.75, 8.17], 0, { text: '차량정비단', bg: '#1d4f9c' })
+add('vending', [2.1, 0, 8.6], 0)
+add('vending', [3.3, 0, 8.6], 0)
+add('bench', [-3, 0, 9.2], 0)
+add('trashBin', [-1.6, 0, 8.6])
+add('trashBin', [-4.6, 0, 8.6])
+add('plant', [-6, 0, 8.7])
+
+// ── 주차장 ──
+const CAR_COLORS = ['#f5f5f5', '#212121', '#b0b6bd', '#8e1b1b', '#1d3f73', '#d9d2c3']
+let ci = 0
+for (const x of [-18, -15, -12, -9, -6, 6, 9, 12, 15, 18]) {
+  if (x === -12 || x === 15) continue // 빈자리
+  add('car', [x, 0, 14], Math.PI / 2 + (ci % 2 ? 0.03 : -0.02), { color: CAR_COLORS[ci++ % CAR_COLORS.length] })
+}
+for (const x of [-10, 10]) add('lightPole', [x, 0, 10], x < 0 ? 0 : Math.PI)
+for (const x of [-24, 0, 24]) add('lightPole', [x, 0, 19.5], Math.PI / 2)
+
+// ── 선로: 차막이, 신호기 ──
+for (const z of TRACK_Z) add('bumper', [TRACK_X[0] + 0.5, 0, z], 0)
+for (const z of [28.5, 38.5]) {
+  add('signal', [5, 0, z], -Math.PI / 2)
+  add('signal', [-37, 0, z], -Math.PI / 2)
+}
+for (const x of [-25, -5]) add('lightPole', [x, 0, 33.5], 0)
+
+// ── 전동차 (3량 1편성) ──
+function train(cx, z, color, cars = 3) {
+  for (let i = 0; i < cars; i++) {
+    const x = cx + (i - (cars - 1) / 2) * 12.5
+    const car = add('trainCar', [x, RAIL_TOP, z], 0, { color })
+    for (const wx of [-5.2, -1.2, 1.2, 5.2]) {
+      for (const side of [-1, 1]) add('trainWindow', [x + wx, RAIL_TOP + 2.55, z + side * 1.42], 0, undefined, car)
+    }
+  }
+}
+train(-18, 26, '#1f5fbf')
+train(26, 31, '#2e7d32')
+train(-14, 36, '#1f5fbf')
+train(26, 41, '#c62828')
+
+// ── 정비고 안 ──
+for (const x of [13, 15.5, 18]) add('wheelset', [x, RAIL_TOP, 36], 0)
+for (const x of [24, 30, 36]) add('toolCart', [x, 0, 33.6], 0)
+for (const x of [22, 34]) add('toolCart', [x, 0, 38.4], Math.PI)
+for (const [x, c] of [[15, '#1f5fbf'], [15.7, '#1f5fbf'], [16.4, '#c62828'], [30, '#2e7d32'], [30.7, '#1f5fbf']]) add('drum', [x, 0, 43.6], 0, { color: c })
+add('sign', [SHED.x0 - 0.1, 7.6, 33.5], -Math.PI / 2, { text: '정 비 고', bg: '#37474f', w: 4 })
+
+// ── 선로 사이 라바콘, 드럼통 ──
+for (let i = 0; i < 6; i++) add('cone', [-2 + i * 1.3, 0, 33.5])
+for (const [x, z] of [[10, 23.8], [10.7, 24.1], [10.2, 24.6]]) add('drum', [x, 0, z], 0, { color: '#c62828' })
+
+// ── 컨테이너 ──
+add('container', [-36, 0, 11], 0, { color: '#1565c0' })
+add('container', [-36, 0, 14.5], 0, { color: '#e65100' })
+add('container', [-28, 0, 12.5], Math.PI / 2, { color: '#2e7d32' })
+
+// ── 나무 (건물 뒤 잔디밭 + 서쪽 울타리) ──
+for (let x = -40; x <= 40; x += 8) {
+  add('tree', [x + ((x * 7) % 3), 0, -14], 0)
+  add('tree', [x + 4, 0, -20.5], 0)
+}
+for (const z of [-4, 2, 18]) add('tree', [-42, 0, z], 0)
 
 export const LAYOUT = items

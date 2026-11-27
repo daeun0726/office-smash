@@ -2,12 +2,13 @@ import { useMemo } from 'react'
 import * as THREE from 'three'
 import { RigidBody, CuboidCollider } from '@react-three/rapier'
 import { Breakable } from './Breakable'
-import { LAYOUT, ROOM } from './layout'
+import { LAYOUT, ROOM, DOOR } from './layout'
 import { floorTex } from './textures'
 
 const WALL = 0.3
 
-function Room() {
+// 사무실 건물 (벽, 출입문, 천장, 지붕, 창문)
+function Building() {
   const { w, d, h } = ROOM
   const floor = useMemo(() => {
     const t = floorTex().clone()
@@ -17,11 +18,24 @@ function Room() {
     return t
   }, [w, d])
 
+  // 남쪽 벽은 출입문 자리를 비워 두고 세 조각으로 나눔
+  const leftW = DOOR.x0 + w / 2 + WALL / 2
+  const rightW = w / 2 + WALL / 2 - DOOR.x1
   const walls = [
     { p: [0, h / 2, -d / 2], s: [w + WALL, h, WALL] },
-    { p: [0, h / 2, d / 2], s: [w + WALL, h, WALL] },
     { p: [-w / 2, h / 2, 0], s: [WALL, h, d] },
     { p: [w / 2, h / 2, 0], s: [WALL, h, d] },
+    { p: [-w / 2 - WALL / 2 + leftW / 2, h / 2, d / 2], s: [leftW, h, WALL] },
+    { p: [w / 2 + WALL / 2 - rightW / 2, h / 2, d / 2], s: [rightW, h, WALL] },
+    { p: [(DOOR.x0 + DOOR.x1) / 2, (DOOR.h + h) / 2, d / 2], s: [DOOR.x1 - DOOR.x0, h - DOOR.h, WALL] },
+  ]
+
+  // 창문: 벽 안쪽(밝은 하늘색)과 바깥쪽(어두운 유리) 양면
+  const off = WALL / 2 + 0.005
+  const windows = [
+    ...[-3.5, 3].map((x) => ({ p: [x, 1.8, d / 2], n: [0, 0, 1] })),
+    ...[-1.5, 4.2].map((z) => ({ p: [w / 2, 1.8, z], n: [1, 0, 0] })),
+    ...[-1, 3].map((z) => ({ p: [-w / 2, 1.8, z], n: [-1, 0, 0] })),
   ]
 
   const lights = []
@@ -30,13 +44,14 @@ function Room() {
   return (
     <>
       <RigidBody type="fixed" colliders={false} friction={1}>
-        <CuboidCollider args={[w / 2, 0.1, d / 2]} position={[0, -0.1, 0]} />
         {walls.map((wl, i) => (
           <CuboidCollider key={i} args={wl.s.map((v) => v / 2)} position={wl.p} />
         ))}
+        {/* 지붕 위로 안전모가 날아가지 않도록 */}
+        <CuboidCollider args={[w / 2 + 0.3, 0.15, d / 2 + 0.3]} position={[0, h + 0.17, 0]} />
       </RigidBody>
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, 0]} receiveShadow>
         <planeGeometry args={[w, d]} />
         <meshStandardMaterial map={floor} roughness={0.85} />
       </mesh>
@@ -46,8 +61,8 @@ function Room() {
           <meshStandardMaterial color="#e8e4dc" />
         </mesh>
       ))}
-      {/* 벽 아래 걸레받이 */}
-      {walls.map((wl, i) => (
+      {/* 안쪽 걸레받이 */}
+      {walls.slice(0, 5).map((wl, i) => (
         <mesh key={`b${i}`} position={[wl.p[0], 0.06, wl.p[2]]}>
           <boxGeometry args={[wl.s[0] + 0.04, 0.12, wl.s[2] + 0.04]} />
           <meshStandardMaterial color="#6f6a62" />
@@ -64,18 +79,38 @@ function Room() {
           <meshBasicMaterial color="#ffffff" />
         </mesh>
       ))}
-      {/* 출입문 (장식) */}
-      <mesh position={[0, 1.1, d / 2 - WALL / 2 - 0.02]}>
-        <boxGeometry args={[1.8, 2.2, 0.04]} />
-        <meshStandardMaterial color="#6b4f36" />
+      {/* 지붕 (바깥에서 보이는 부분) */}
+      <mesh position={[0, h + 0.17, 0]}>
+        <boxGeometry args={[w + 0.6, 0.3, d + 0.6]} />
+        <meshStandardMaterial color="#7d848c" />
       </mesh>
-      {/* 동쪽 창문 (장식) */}
-      {[4.2].map((z) => (
-        <mesh key={z} position={[w / 2 - WALL / 2 - 0.01, 1.7, z]} rotation={[0, -Math.PI / 2, 0]}>
-          <planeGeometry args={[2.4, 1.3]} />
-          <meshBasicMaterial color="#bfe3ff" />
+      {/* 출입문 틀 */}
+      {[DOOR.x0 - 0.05, DOOR.x1 + 0.05].map((x) => (
+        <mesh key={x} position={[x, DOOR.h / 2, d / 2]}>
+          <boxGeometry args={[0.1, DOOR.h, WALL + 0.06]} />
+          <meshStandardMaterial color="#5d4632" />
         </mesh>
       ))}
+      <mesh position={[(DOOR.x0 + DOOR.x1) / 2, DOOR.h + 0.05, d / 2]}>
+        <boxGeometry args={[DOOR.x1 - DOOR.x0 + 0.2, 0.1, WALL + 0.06]} />
+        <meshStandardMaterial color="#5d4632" />
+      </mesh>
+      {/* 창문 */}
+      {windows.map(({ p, n }, i) => {
+        const rotY = Math.atan2(n[0], n[2])
+        return (
+          <group key={i}>
+            <mesh position={[p[0] + n[0] * off, p[1], p[2] + n[2] * off]} rotation={[0, rotY, 0]}>
+              <planeGeometry args={[2.4, 1.3]} />
+              <meshStandardMaterial color="#5f7f9e" roughness={0.15} metalness={0.4} />
+            </mesh>
+            <mesh position={[p[0] - n[0] * off, p[1], p[2] - n[2] * off]} rotation={[0, rotY + Math.PI, 0]}>
+              <planeGeometry args={[2.4, 1.3]} />
+              <meshBasicMaterial color="#bfe3ff" />
+            </mesh>
+          </group>
+        )
+      })}
     </>
   )
 }
@@ -83,22 +118,7 @@ function Room() {
 export function Office() {
   return (
     <>
-      <ambientLight intensity={0.55} />
-      <hemisphereLight args={['#ffffff', '#8a8f96', 0.6]} />
-      <directionalLight
-        position={[6, 14, 5]}
-        intensity={1.4}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-left={-14}
-        shadow-camera-right={14}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-        shadow-camera-near={1}
-        shadow-camera-far={40}
-        shadow-bias={-0.0005}
-      />
-      <Room />
+      <Building />
       {LAYOUT.map((it) => (
         <Breakable key={it.id} {...it} />
       ))}

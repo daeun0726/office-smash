@@ -144,6 +144,24 @@ export const clockTex = () =>
     g.stroke()
   })
 
+export const vendTex = () =>
+  canvasTex('vend', 256, 360, (g, w, h) => {
+    g.fillStyle = '#e9f2fa'
+    g.fillRect(0, 0, w, h)
+    const cols = ['#e53935', '#1e88e5', '#43a047', '#fdd835', '#8e24aa', '#fb8c00']
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 5; c++) {
+        const x = 14 + c * 47
+        const y = 18 + r * 86
+        g.fillStyle = cols[(r * 5 + c) % cols.length]
+        g.fillRect(x + 8, y + 10, 24, 56)
+        g.fillRect(x + 14, y, 12, 12)
+        g.fillStyle = '#333'
+        g.fillRect(x + 4, y + 70, 32, 6)
+      }
+    }
+  })
+
 export const floorTex = () =>
   canvasTex('floor', 256, 256, (g, w, h) => {
     g.fillStyle = '#b9bcbf'

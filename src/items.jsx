@@ -1,4 +1,4 @@
-import { signTex, nameplateTex, screenTex, tvTex, whiteboardTex, clockTex } from './textures'
+import { signTex, nameplateTex, screenTex, tvTex, whiteboardTex, clockTex, vendTex } from './textures'
 
 // 기본 도형 (각 메시마다 물리 충돌 상자가 자동으로 만들어짐)
 function Box({ p = [0, 0, 0], s, c = '#fff', r, basic, shadow = true, ...m }) {
@@ -10,14 +10,26 @@ function Box({ p = [0, 0, 0], s, c = '#fff', r, basic, shadow = true, ...m }) {
   )
 }
 
-function Cyl({ p = [0, 0, 0], rt, rb = rt, h, c, seg = 18, ...m }) {
+function Cyl({ p = [0, 0, 0], r, rt, rb = rt, h, c, seg = 18, ...m }) {
   return (
-    <mesh position={p} castShadow receiveShadow>
+    <mesh position={p} rotation={r} castShadow receiveShadow>
       <cylinderGeometry args={[rt, rb, h, seg]} />
       <meshStandardMaterial color={c} roughness={0.6} {...m} />
     </mesh>
   )
 }
+
+function Cone({ p = [0, 0, 0], rad, h, c, seg = 14, ...m }) {
+  return (
+    <mesh position={p} castShadow receiveShadow>
+      <coneGeometry args={[rad, h, seg]} />
+      <meshStandardMaterial color={c} roughness={0.7} {...m} />
+    </mesh>
+  )
+}
+
+const AXIS_X = [0, 0, Math.PI / 2] // 원기둥을 x축 방향으로 눕힘
+const AXIS_Z = [Math.PI / 2, 0, 0] // 원기둥을 z축 방향으로 눕힘
 
 export function HelmetMesh() {
   return (
@@ -269,6 +281,183 @@ export const ITEM_TYPES = {
   },
   sign: {
     name: '표어 액자', hp: 30, value: 100000, mat: 'wood', fixed: true, colors: ['#1f7a3a', '#ffffff'], w: 2.2, h: 0.55, pieces: 10, chunk: 0.22,
-    render: ({ text, bg }) => <Box s={[2.2, 0.55, 0.03]} c="#fff" map={signTex(text, bg)} />,
+    render: ({ text, bg, w = 2.2 }) => <Box s={[w, w / 4, 0.03]} c="#fff" map={signTex(text, bg)} />,
   },
+
+  // ───────────── 건물 밖 ─────────────
+  vending: {
+    name: '음료 자판기', hp: 80, value: 3000000, mat: 'glass', push: 0.4, colors: ['#c8202a', '#222222', '#ffffff'], w: 1, h: 1.85, pieces: 14, chunk: 0.25,
+    render: () => (
+      <>
+        <Box p={[0, 0.925, 0]} s={[1, 1.85, 0.8]} c="#c8202a" />
+        <Box p={[-0.08, 1.2, 0.41]} s={[0.7, 1.0, 0.02]} basic map={vendTex()} shadow={false} />
+        <Box p={[0.38, 1.1, 0.41]} s={[0.16, 0.45, 0.02]} c="#222" />
+        <Box p={[-0.08, 0.3, 0.41]} s={[0.6, 0.15, 0.02]} c="#111" />
+      </>
+    ),
+  },
+  bench: {
+    name: '벤치', hp: 40, value: 200000, mat: 'wood', colors: ['#8b5a2b', '#333333'], w: 1.6, h: 0.8, pieces: 8, chunk: 0.25,
+    render: () => (
+      <>
+        <Box p={[0, 0.45, 0]} s={[1.6, 0.06, 0.45]} c="#8b5a2b" />
+        <Box p={[0, 0.75, -0.2]} s={[1.6, 0.35, 0.05]} c="#8b5a2b" />
+        <Box p={[-0.7, 0.225, 0]} s={[0.06, 0.45, 0.4]} c="#333" />
+        <Box p={[0.7, 0.225, 0]} s={[0.06, 0.45, 0.4]} c="#333" />
+      </>
+    ),
+  },
+  trashBin: {
+    name: '쓰레기통', hp: 15, value: 60000, mat: 'plastic', colors: ['#2e7d32', '#1b5e20'], w: 0.6, h: 0.9, pieces: 7, chunk: 0.15,
+    render: () => (
+      <>
+        <Cyl p={[0, 0.45, 0]} rt={0.3} rb={0.27} h={0.9} c="#2e7d32" />
+        <Cyl p={[0, 0.93, 0]} rt={0.32} h={0.06} c="#1b5e20" />
+      </>
+    ),
+  },
+  car: {
+    name: '승용차', hp: 220, value: 25000000, mat: 'metal', push: 0.25, colors: [], w: 4.2, h: 1.6, pieces: 18, chunk: 0.45,
+    render: ({ color = '#b0b6bd' }) => (
+      <>
+        <Box p={[0, 0.62, 0]} s={[4.2, 0.75, 1.8]} c={color} metalness={0.4} roughness={0.35} />
+        <Box p={[-0.2, 1.27, 0]} s={[2.3, 0.6, 1.62]} c="#2b3440" roughness={0.15} />
+        {[[-1.35, -0.85], [-1.35, 0.85], [1.35, -0.85], [1.35, 0.85]].map(([x, z], i) => (
+          <Cyl key={i} p={[x, 0.33, z]} r={AXIS_Z} rt={0.33} h={0.25} c="#1a1a1a" />
+        ))}
+        <Box p={[2.1, 0.75, 0.6]} s={[0.04, 0.14, 0.32]} c="#fff8d0" emissive="#fff3b0" emissiveIntensity={0.5} />
+        <Box p={[2.1, 0.75, -0.6]} s={[0.04, 0.14, 0.32]} c="#fff8d0" emissive="#fff3b0" emissiveIntensity={0.5} />
+        <Box p={[-2.1, 0.78, 0.6]} s={[0.04, 0.12, 0.3]} c="#b71c1c" />
+        <Box p={[-2.1, 0.78, -0.6]} s={[0.04, 0.12, 0.3]} c="#b71c1c" />
+      </>
+    ),
+  },
+  cone: {
+    name: '라바콘', hp: 3, value: 10000, mat: 'soft', colors: ['#ff6d00', '#ffffff'], w: 0.4, h: 0.6, pieces: 4, chunk: 0.12,
+    render: () => (
+      <>
+        <Box p={[0, 0.02, 0]} s={[0.4, 0.04, 0.4]} c="#222" />
+        <Cone p={[0, 0.34, 0]} rad={0.17} h={0.6} c="#ff6d00" />
+      </>
+    ),
+  },
+  drum: {
+    name: '드럼통', hp: 40, value: 150000, mat: 'metal', colors: ['#1f5fbf', '#555555'], w: 0.6, h: 0.9, pieces: 8, chunk: 0.22,
+    render: ({ color = '#1f5fbf' }) => (
+      <>
+        <Cyl p={[0, 0.45, 0]} rt={0.3} h={0.9} c={color} metalness={0.4} />
+        <Cyl p={[0, 0.3, 0]} rt={0.305} h={0.03} c="#444" />
+        <Cyl p={[0, 0.6, 0]} rt={0.305} h={0.03} c="#444" />
+      </>
+    ),
+  },
+  toolCart: {
+    name: '공구 카트', hp: 50, value: 1200000, mat: 'metal', colors: ['#c62828', '#555555'], w: 0.9, h: 1.0, pieces: 10, chunk: 0.18,
+    render: () => (
+      <>
+        <Box p={[0, 0.35, 0]} s={[0.9, 0.05, 0.5]} c="#c62828" />
+        <Box p={[0, 0.8, 0]} s={[0.9, 0.05, 0.5]} c="#c62828" />
+        {[[-0.42, -0.22], [0.42, -0.22], [-0.42, 0.22], [0.42, 0.22]].map(([x, z], i) => (
+          <Box key={i} p={[x, 0.42, z]} s={[0.04, 0.84, 0.04]} c="#555" />
+        ))}
+        <Box p={[0.1, 0.93, 0]} s={[0.5, 0.2, 0.3]} c="#d32f2f" />
+      </>
+    ),
+  },
+  wheelset: {
+    name: '윤축(차륜)', hp: 200, value: 30000000, mat: 'metal', push: 0.2, colors: ['#6a6a6a', '#444444'], w: 1.5, h: 0.9, pieces: 10, chunk: 0.3,
+    render: () => (
+      <>
+        <Cyl p={[0, 0.46, 0]} r={AXIS_Z} rt={0.09} h={2.0} c="#555" metalness={0.7} />
+        <Cyl p={[0, 0.46, 0.72]} r={AXIS_Z} rt={0.46} h={0.14} c="#6a6a6a" metalness={0.7} />
+        <Cyl p={[0, 0.46, -0.72]} r={AXIS_Z} rt={0.46} h={0.14} c="#6a6a6a" metalness={0.7} />
+      </>
+    ),
+  },
+  lightPole: {
+    name: '가로등', hp: 60, value: 1500000, mat: 'metal', fixed: true, colors: ['#777777', '#fffde7'], w: 1, h: 7, pieces: 10, chunk: 0.3,
+    render: () => (
+      <>
+        <Cyl p={[0, 3.5, 0]} rt={0.08} rb={0.12} h={7} c="#777" metalness={0.5} />
+        <Box p={[0.6, 6.9, 0]} s={[1.2, 0.08, 0.08]} c="#777" />
+        <Box p={[1.1, 6.82, 0]} s={[0.5, 0.12, 0.3]} c="#fffde7" emissive="#fff8c0" emissiveIntensity={0.8} />
+      </>
+    ),
+  },
+  signal: {
+    name: '신호기', hp: 40, value: 5000000, mat: 'glass', fixed: true, colors: ['#222222', '#e53935', '#43a047'], w: 0.5, h: 4.8, pieces: 8, chunk: 0.2,
+    render: () => (
+      <>
+        <Cyl p={[0, 2, 0]} rt={0.07} h={4} c="#444" />
+        <Box p={[0, 4.3, 0]} s={[0.45, 1.1, 0.3]} c="#222" />
+        <Box p={[0, 4.6, 0.16]} s={[0.22, 0.22, 0.02]} c="#e53935" emissive="#ff1744" emissiveIntensity={1} />
+        <Box p={[0, 4.3, 0.16]} s={[0.22, 0.22, 0.02]} c="#3a3a10" />
+        <Box p={[0, 4.0, 0.16]} s={[0.22, 0.22, 0.02]} c="#173d1a" />
+      </>
+    ),
+  },
+  bumper: {
+    name: '차막이', hp: 150, value: 2000000, mat: 'metal', fixed: true, colors: ['#c62828', '#222222'], w: 1, h: 1.3, pieces: 10, chunk: 0.3,
+    render: () => (
+      <>
+        <Box p={[0, 0.7, 0]} s={[0.8, 1.1, 2.2]} c="#c62828" />
+        <Cyl p={[0.6, 1.05, 0.75]} r={AXIS_X} rt={0.18} h={0.5} c="#222" />
+        <Cyl p={[0.6, 1.05, -0.75]} r={AXIS_X} rt={0.18} h={0.5} c="#222" />
+      </>
+    ),
+  },
+  container: {
+    name: '컨테이너', hp: 300, value: 4000000, mat: 'metal', push: 0.05, colors: [], w: 6, h: 2.6, pieces: 20, chunk: 0.8,
+    render: ({ color = '#1565c0' }) => (
+      <>
+        <Box p={[0, 1.3, 0]} s={[6, 2.6, 2.4]} c={color} metalness={0.3} />
+        {[-2.9, -1.5, 0, 1.5, 2.9].map((x) => (
+          <Box key={x} p={[x, 1.3, 0]} s={[0.08, 2.5, 2.44]} c="#333" />
+        ))}
+      </>
+    ),
+  },
+  tree: {
+    name: '나무', hp: 60, value: 300000, mat: 'soft', fixed: true, colors: ['#2e7d32', '#6d4c41', '#388e3c'], w: 2, h: 5, pieces: 12, chunk: 0.4,
+    render: () => (
+      <>
+        <Cyl p={[0, 1.1, 0]} rt={0.15} rb={0.22} h={2.2} c="#6d4c41" />
+        <Cone p={[0, 3.4, 0]} rad={1.4} h={3} c="#2e7d32" />
+        <Cone p={[0, 4.8, 0]} rad={1.0} h={2.2} c="#388e3c" />
+      </>
+    ),
+  },
+  trainCar: {
+    name: '전동차', hp: 500, value: 1200000000, mat: 'metal', fixed: true, colors: [], w: 12, h: 3.6, pieces: 26, chunk: 0.9,
+    render: ({ color = '#1f5fbf' }) => (
+      <>
+        <Box p={[0, 2.35, 0]} s={[12, 2.6, 2.8]} c="#e3e7eb" metalness={0.5} roughness={0.35} />
+        <Box p={[0, 1.75, 0]} s={[12.02, 0.25, 2.82]} c={color} />
+        <Box p={[0, 3.75, 0]} s={[11.8, 0.2, 2.6]} c="#9aa0a6" />
+        {[-3.2, 3.2].map((x) => (
+          <Box key={x} p={[x, 2.15, 0]} s={[1.3, 2.0, 2.84]} c="#c3c8cd" metalness={0.4} />
+        ))}
+        {[-4.2, 4.2].map((x) => (
+          <group key={x}>
+            <Box p={[x, 0.75, 0]} s={[2.4, 0.5, 2.3]} c="#2d2d2d" />
+            {[-0.85, 0.85].map((dx) =>
+              [-0.72, 0.72].map((z) => <Cyl key={`${dx}${z}`} p={[x + dx, 0.43, z]} r={AXIS_Z} rt={0.43} h={0.12} c="#555" metalness={0.6} />),
+            )}
+          </group>
+        ))}
+        <Box p={[6.15, 1.2, 0]} s={[0.3, 0.3, 0.3]} c="#333" />
+        <Box p={[-6.15, 1.2, 0]} s={[0.3, 0.3, 0.3]} c="#333" />
+      </>
+    ),
+  },
+  trainWindow: {
+    name: '전동차 유리창', hp: 10, value: 800000, mat: 'glass', fixed: true, clear: true, colors: ['#9ec9ef', '#cfe6fa'], w: 1.4, h: 0.9, pieces: 10, chunk: 0.2,
+    render: () => <Box s={[1.4, 0.9, 0.04]} c="#1d2b3a" transparent opacity={0.75} roughness={0.1} shadow={false} />,
+  },
+}
+
+// 파편 색이 매개변수(차 색상 등)에 따라 정해지는 물건
+export function debrisColors(t, args) {
+  if (t.colors.length) return t.colors
+  return [args?.color || '#888888', '#333333', '#cccccc']
 }

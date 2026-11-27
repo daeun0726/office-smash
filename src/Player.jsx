@@ -4,6 +4,7 @@ import { RigidBody, CapsuleCollider, useRapier } from '@react-three/rapier'
 import * as THREE from 'three'
 import { useGame, WEAPONS, fx } from './store'
 import { SPAWN } from './layout'
+import { ITEM_TYPES } from './items'
 import { sfx } from './sound'
 import { Weapon } from './Weapon'
 
@@ -45,11 +46,12 @@ export function Player() {
       const point = origin.clone().addScaledVector(dir, toi)
       const rb = hit.collider.parent()
       if (!rb) return sfx.thud()
+      const ud = rb.userData || {}
       if (rb.isDynamic()) {
-        const m = rb.mass()
+        // 무거운 물건(차, 컨테이너 등)은 덜 밀림
+        const m = rb.mass() * (ITEM_TYPES[ud.kind]?.push ?? 1)
         rb.applyImpulseAtPoint({ x: dir.x * w.push * m, y: (dir.y * w.push + 1.5) * m, z: dir.z * w.push * m }, point, true)
       }
-      const ud = rb.userData || {}
       if (ud.breakable) useGame.getState().damage(ud.breakable, ud.kind, w.damage, rb.translation(), dir.clone())
       else sfx.thud()
     }
@@ -95,6 +97,16 @@ export function Player() {
       window.removeEventListener('blur', onBlur)
     }
   }, [camera, world, rapier])
+
+  // 개발 모드 전용: 콘솔에서 순간이동해 화면을 확인할 때 사용 (배포 빌드에서는 빠짐)
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    window.__game = useGame
+    window.__tp = (x, y, z, yaw = 0, pitch = 0) => {
+      body.current?.setTranslation({ x, y, z }, true)
+      camera.rotation.set(pitch, yaw, 0, 'YXZ')
+    }
+  }, [camera])
 
   useFrame((_, dt) => {
     const b = body.current
